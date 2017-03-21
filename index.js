@@ -12,6 +12,17 @@ void function() {
     const winston = require('winston');
     const objectAssign = require('object-assign');
 
+    // App Store Manager
+    const reducers = require('./src/reducers');
+    const store = redux.createStore(reducers.rootReducer);
+    const action = require('./src/actions');
+
+    console.log( store );
+
+    // Storage Modules
+    const Projects = require('./src/modules/Projects');
+
+
     // Logging
     const userDataPath = app.getPath('userData');
     const logger = new (winston.Logger)({
@@ -29,9 +40,10 @@ void function() {
     daisyConv.log = logger;
 
     const render = () => {
-        console.log( 'render' );
-        mainWindow.webContents.send("render", {});
+        console.log( 'render:state::' , store.getState() );
+        mainWindow.webContents.send("render", store.getState());
     };
+
 
     function createWindow() {
         // Create the browser window.
@@ -56,6 +68,14 @@ void function() {
             mainWindow = null;
         });
 
+        // Open Project List
+        mainWindow.webContents.on("dom-ready", function(){
+            action.loadProjects(store).then(function(){
+                return action.viewProjects(store);
+            }).then(function(){
+                render();
+            });
+        });
     }
 
     daisyConv.app.on('ready', createWindow);
@@ -71,6 +91,31 @@ void function() {
         if (mainWindow === null) {
             createWindow();
         }
+    });
+
+    ipcMain.on("dispatch-store", (sender, e) => {
+        store.dispatch(e);
+        render();
+    });
+
+    // Open DAISY File
+    // DAISY File Open
+    ipcMain.on("file-open", (sender, e) => {
+        const file = e.files[0];
+        action.viewLoading( store );
+        render();
+        
+        action.loadDAISY( store, file ).then(function( daisy ){
+            return action.addProject(store , daisy);
+        }).then(function(){
+            return action.loadProjects(store);
+        })
+        .then(function(){
+            return action.viewProjects(store);
+        }).then(function(){
+            render();
+        });
+
     });
 
 

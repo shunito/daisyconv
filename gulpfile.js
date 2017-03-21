@@ -3,7 +3,7 @@ var webpack = require('gulp-webpack');
 var webpackConfig = require('./webpack.config.js');
 
 gulp.task('build', function() {
-    return gulp.src('./src/*.js')
+    return gulp.src('./src/components/*.js')
         .pipe(webpack(Object.assign({}, webpackConfig, {
             watch: true,
         })))
