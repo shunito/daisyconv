@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.1" xml:lang="<%= epub.lang %>"
+  unique-identifier="pub-id"
+  prefix="dc: http://purl.org/dc/elements/1.1/"
+  prefix="rendition: http://www.idpf.org/vocab/rendition/#">
+<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="pub-id"><%= epub.identifier %></dc:identifier>
+    <dc:title id="title"><%= epub.title %></dc:title>
+    <meta refines="#title" property="display-seq">1</meta>
+    <%= epub.creators %>
+    <%= epub.publishers %>
+    <dc:format>application/epub+zip</dc:format>
+    <dc:language><%= epub.lang %></dc:language>
+    <meta property="ibooks:specified-fonts">true</meta>
+    <meta property="dcterms:modified"><%= epub.modified %></meta>
+    <meta name="cover" content="_cover.jpg" />
+    <%= epub.metadatas %>
+</metadata>
+<manifest>
+    <item media-type="image/jpeg" href="cover.jpg" id="_cover.jpg" properties="cover-image" />
+    <item media-type="text/css" href="default_vertical.css" id="_default_vertical.css" />
+    <item media-type="text/css" href="default.css" id="_default.css" />
+    <item media-type="application/xhtml+xml" href="cover.xhtml" id="_cover.xhtml" />
+    <item media-type="application/xhtml+xml" href="nav.xhtml" id="_nav.xhtml" properties="nav" />
+    <%- epub.items %>
+</manifest>
+<spine page-progression-direction="rtl" toc="_toc.ncx">
+    <itemref idref="_cover.xhtml" linear="no" />
+    <itemref idref="_nav.xhtml" />
+    <%- epub.spines %>
+</spine>
+</package>

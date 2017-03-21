@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:epub="http://www.idpf.org/2007/ops"
+    epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#"
+    xml:lang="<%= page.lang %>" lang="<%= page.lang %>">
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="css/default.css" type="text/css" />
+    <title><%= page.title %></title>
+</head>
+<body class="frontmatter" epub:type="frontmatter">
+
+<nav id="toc" class="toc" epub:type="toc">
+    <h2><%= toc.title %></h2>
+    <%= toc.body %><
+</nav>
+<nav id="landmarks" class="landmarks" epub:type="landmarks" hidden="hidden">
+<h2><%= toc.landmarksTitle %></h2>
+<ol>
+<li><a epub:type="cover" href="cover.xhtml"><span><%= toc.coverTitle %></span></a></li>
+<li><a epub:type="toc" href="nav.xhtml"><span><%= toc.tocTitle %></span></a></li>
+<li><a epub:type="bodymatter" href="<%= toc.bodymatter %>"><span><%= toc.bodymatterTitle %></span></a></li>
+</ol>
+</nav>
+</body>
+</html>

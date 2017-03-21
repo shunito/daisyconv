@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="assets/photon/css/photon.min.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+
+    <title>DAISY Converter - Create EPUB 3.1</title>
+</head>
+
+<body>
+
+    <div class="window">
+        <header class="toolbar toolbar-header">
+            <div class="toolbar-actions" id="toolbar"></div>
+        </header>
+
+        <div class="window-content">
+            <div class="pane-group">
+                <div class="pane-sm sidebar">
+                    <div id="sidemenu"></div>
+                </div>
+                <div class="pane">
+                    <div id="app"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ipcRenderer = require('electron').ipcRenderer;
+        const {dialog} = require('electron').remote;
+
+        document.ondragover = document.ondrop = function(e) {
+            e.preventDefault();
+            return false;
+        };
+    </script>
+    <script src="./dist/build.js"></script>
+</body>
+
+</html>
