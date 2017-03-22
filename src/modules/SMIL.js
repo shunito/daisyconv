@@ -60,6 +60,60 @@ function _transform( smil ){
         return XMLF.format($smil3.html(), 2);
 }
 
+module.exports.makeParList = function( smil ){
+    let result = [];
+    let $ = cheerio.load(smil, {
+        decodeEntities: false,
+        xmlMode: true
+    });
+
+    $('par').each(function(i, elm){
+        let text = $(elm).find('text').eq(0);
+        let audio = $(elm).find('audio').eq(0);
+
+        if( text && audio ){
+            let begin = $(audio).attr('clip-begin');
+            let end = $(audio).attr('clip-end');
+
+            $(audio).attr('clipBegin', begin);
+            $(audio).attr('clipEnd', end);
+            $(audio).removeAttr('clip-begin');
+            $(audio).removeAttr('clip-end');
+
+            let parValue = elm.attribs;
+            let textValue = text[0].attribs;
+            let audioValue = audio[0].attribs;
+
+            //console.log( parValue );
+            //console.log( textValue );
+            //console.log( audioValue );
+
+            let src = textValue.src;
+            let href = src.match("(.+?)([\?#;].*)?$");
+
+
+            //console.log( href );
+
+
+            if( href ){
+                let fname = href[1];
+                result.push({
+                        html: fname,
+                        par: parValue,
+                        text : textValue,
+                        audio: audioValue });
+            }
+
+
+        }
+    });
+
+    console.log( result );
+
+    return result;
+};
+
+
 module.exports.makeHTMLToc = function( smil, smilId ) {
 
     let result = [];

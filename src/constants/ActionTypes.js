@@ -13,6 +13,7 @@ module.exports.OPEN_DAISY_FILE = 'OPEN_DAISY_FILE';
 module.exports.DAISY_LOAD = 'DAISY_LOAD';
 
 // Project
+module.exports.PROJECT_OPEN = 'PROJECT_OPEN';
 module.exports.PROJECT_LOAD = 'PROJECT_LOAD';
 module.exports.PROJECT_ADD = 'PROJECT_ADD';
 module.exports.PROJECT_REMOVE = 'PROJECT_REMOVE';

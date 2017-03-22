@@ -24,8 +24,9 @@ export default class ProjectList extends Component {
 
     _onSelectProject( e ){
         const id = e.currentTarget.getAttribute('data-projId');
-        ipcRenderer.send("project-open", {
-            id: id
+        ipcRenderer.send("dispatch-store", {
+            type: 'VIEW_DAISY_STATUS',
+            value: id
         });
     }
 

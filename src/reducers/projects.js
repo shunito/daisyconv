@@ -15,7 +15,7 @@ const initialState = [];
 
 function projects(state = initialState, action) {
 
-console.log('PJ reducer:: ', action );
+//console.log('PJ reducer:: ', action );
 
     switch (action.type) {
         case PROJECT_UPDATE:

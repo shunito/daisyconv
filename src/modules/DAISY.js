@@ -1,65 +1,66 @@
 // jshint esversion:6
 const electron = require('electron');
-const app = electron.app;
+const storage = require('electron-json-storage');
+const fs = require('fs-extra');
+const unzip = require('unzip');
+const path = require('path');
+const crypto = require('crypto');
+const mime = require('mime');
+const glob = require("glob");
+const jschardet = require('jschardet');
+const iconv = require('iconv-lite');
+const cheerio = require('cheerio');
 
-var fs = require('fs-extra');
-var unzip = require('unzip');
-var path = require('path');
-var crypto = require('crypto');
-var mime = require('mime');
-var glob = require("glob");
-var jschardet = require('jschardet');
-var iconv = require('iconv-lite');
-var cheerio = require('cheerio');
-
-var userPath = app.getPath('userData');
-var moduleDir = __dirname;
-
-var tempDir = path.join(userPath, 'projects');
-
+// Modules
 const Smil = require('./SMIL.js');
 
-var DAISY = {
-    "id": '',
-    "status": 'unload',
-    "loaded": false,
-    "originFilePath": '',
-    "workingDir": '',
-    "daisyDataDir": '',
-    "daisyNCCFilePath": ''
-};
+// Setting
+const app = electron.app;
+const userPath = app.getPath('userData');
+const projectsDir = path.join(userPath, 'projects');
 
-function md5_hex(src) {
-    var md5 = crypto.createHash('md5');
+function _createNewDAISY(){
+    return {
+        "id": '',
+        "title": '',
+        "isReady": false,
+        "workingDir": '',
+        "nccFilePath": '',
+        "daisyDataDir": '',
+        "toc": [],
+        "items": {},
+        "smil": [],
+        "metadata":[]
+    };
+}
+
+function _md5_hex(src) {
+    const md5 = crypto.createHash('md5');
     md5.update(src, 'utf8');
     return md5.digest('hex');
 }
 
-function copyFile(source, target, cb) {
-    var cbCalled = false;
-
-    var rd = fs.createReadStream(source);
-    rd.on("error", function(err) {
-        done(err);
+function _getDirName( tempDirpath ){
+    return new Promise(function(resolve, reject){
+        let result = [] , dirpath;
+        fs.readdir( tempDirpath , function (err, list) {
+            if (err) {
+                reject( err );
+            }
+            else {
+                for (var i = 0; i < list.length; i++) {
+                    dirpath = path.join(tempDirpath, list[i]);
+                    if( fs.statSync( dirpath ).isDirectory() ){
+                        result.push( dirpath );
+                    }
+                }
+                resolve( result );
+            }
+        });
     });
-    var wr = fs.createWriteStream(target);
-    wr.on("error", function(err) {
-        done(err);
-    });
-    wr.on("close", function(ex) {
-        done();
-    });
-    rd.pipe(wr);
-
-    function done(err) {
-        if (!cbCalled) {
-            cb(err);
-            cbCalled = true;
-        }
-    }
 }
 
-function getDirName( tempDirpath ,callback ){
+function _getDirName( tempDirpath ,callback ){
     var result = [] , dirpath;
 
     fs.readdir( tempDirpath , function (err, list) {
@@ -79,299 +80,305 @@ function getDirName( tempDirpath ,callback ){
     });
 }
 
-function makeWorkingDirectory( daisyFilePath, callback ) {
+function _makeWorkingDirectory( daisyFilePath ){
+    return new Promise(function(resolve, reject){
+        let daisy = _createNewDAISY();
+        let targetFilePath, bookId, unixtime;
+        const stats = fs.statSync(daisyFilePath);
 
-    DAISY.originFilePath = daisyFilePath;
-    DAISY.status = 'loading';
+        if (stats.isFile()) {
+            const mimetype = mime.lookup(daisyFilePath);
+            const filename = path.basename(daisyFilePath);
 
-    var stats = fs.statSync(daisyFilePath);
-    var filename = '';
-    var mimetype = '';
-    var originFile = '';
-    var targetFilePath = '';
-    var bookId = '';
-    var unixtime = 0;
-
-    if (stats.isFile()) {
-        filename = path.basename(daisyFilePath);
-        mimetype = mime.lookup(daisyFilePath);
-
-        if (mimetype !== 'application/zip') {
-            logger.error('Import Error : DAISY format :%s ', daisyFilePath );
-            return;
-        }
-        unixtime = Math.floor(new Date().getTime() / 1000);
-        bookId = md5_hex( unixtime + filename);
-        targetFilePath = path.join(tempDir, bookId );
-        DAISY.id = bookId;
-
-        console.log(filename, mimetype, stats.size, unixtime);
-        console.log('bookId:', bookId);
-        console.log('target:', targetFilePath);
-
-        fs.mkdirs( targetFilePath, function(err){
-            if( err ){
-                console.log( err );
-                DAISY.status = 'error';
-                callback( DAISY );
-                return;
+            if (mimetype !== 'application/zip') {
+                logger.error('Import Error : DAISY format :%s ', daisyFilePath );
+                reject('file type error');
             }
 
-            console.log('mkdir:', targetFilePath );
-            DAISY.workingDir = targetFilePath;
-
-            fs.createReadStream(daisyFilePath)
-                .pipe(unzip.Extract({
-                    path: targetFilePath
-                })
-                .on('error',function(err){
-                    console.log(err);
-                    DAISY.status = 'error';
-                    callback( DAISY );
-                })
-                .on('finish',function(){
-                    getDirName( targetFilePath, function(list, err){
-                        if( err ){
-                            DAISY.status = 'error';
-                            callback( DAISY );
-                            return;
-                        }
-                        console.log( list );
-                        if( list.length ){
-                            DAISY.daisyDataDir = list[0];
-
-                            // waiting UNZIP Extract...?
-                            setTimeout(function(){
-                                callback( DAISY );
-                            }, 2000);
-                        }
-                    });
-                })
-            );
-        });
-    }
-}
-
-function parseNCC( ncc ) {
-    let $ = cheerio.load( ncc );
-    var title, titles = [];
-    var identifier = '';
-    var metadata = [];
-    var structure = [];
-    var headerLevel = 1;
-
-    var regMetadata = RegExp("^(dc|ncc):(.*)","i");
-    var regHeader = RegExp("h([0-9])","i");
-
-    title = $("title").text();
-
-    $("meta").each(function(){
-        var self = this.attribs;
-        var meta = '',
-            type = '',
-            name = '',
-            content = '',
-            scheme = '';
-
-        if( typeof self.name === 'string' ){
-            name = self.name;
-        }
-        if( typeof self.content === 'string' ){
-            content = self.content;
-        }
-        if( typeof self.scheme === 'string' ){
-            scheme = self.scheme;
-        }
-
-        re = name.match(regMetadata);
-        if( re ){
-            meta = re[0].toLowerCase();
-            type = re[2].toLowerCase();
-            if( type === 'title' ){
-                titles.push( content );
-            }
-
-            if( type === 'identifier' ){
-                identifier = content;
-            }
-
-            metadata.push({
-                meta: meta,
-                type: type,
-                content : content,
-                scheme : scheme
+            unixtime = Math.floor(new Date().getTime() / 1000);
+            bookId = _md5_hex( unixtime + filename );
+            targetFilePath = path.join(projectsDir, bookId );
+            fs.mkdirs( targetFilePath, function(err){
+                if( err ){
+                    logger.error('Import Error : Mkdirs :%s ', targetFilePath );
+                    reject('mkdirs error');
+                }
+                daisy.id = bookId;
+                daisy.workingDir = targetFilePath;
+                resolve( daisy );
             });
         }
     });
+}
 
-    $("a").each(function(){
-        var self = this;
-        var parent = this.parent;
-        var tagName = parent.name;
-        var re, id, text, href;
+function _unzipDAISY( daisyFilePath, daisy ){
+    return new Promise(function(resolve, reject){
+        const targetFilePath = daisy.workingDir;
 
-        href = self.attribs.href;
-        text = $(self).text();
-        //console.log( parent.name, parent.attribs );
-        //console.log( self.attribs, $(self).text() );
+        fs.createReadStream(daisyFilePath)
+            .pipe(unzip.Extract({
+                path: targetFilePath
+            })
+            .on('error',function(err){
+                reject( err );
+            })
+            .on('finish',function(){
+                _getDirName( targetFilePath, function(list, err){
+                    if( err ){
+                        reject( err );
+                    }
+                    if( list.length ){
+                        daisy.daisyDataDir = list[0];
 
-        if( typeof parent.attribs.id === 'string' ){
-            id = parent.attribs.id;
-            if( typeof self.attribs.id === 'string' ){
-                id= self.attribs.id;
+                        // waiting UNZIP Extract...?
+                        setTimeout(function(){
+                            resolve( daisy );
+                        }, 2000);
+                    }
+                });
+            })
+        );
+    });
+}
+
+function _parseNCC( daisy ){
+
+    function parse( ncc ) {
+        let $ = cheerio.load( ncc );
+        var title, titles = [];
+        var identifier = '';
+        var metadata = [];
+        var structure = [];
+        var headerLevel = 1;
+
+        var regMetadata = RegExp("^(dc|ncc):(.*)","i");
+        var regHeader = RegExp("h([0-9])","i");
+
+        title = $("title").text();
+
+        $("meta").each(function(){
+            var self = this.attribs;
+            var meta = '',
+                type = '',
+                name = '',
+                content = '',
+                scheme = '';
+
+            if( typeof self.name === 'string' ){
+                name = self.name;
             }
-        }
+            if( typeof self.content === 'string' ){
+                content = self.content;
+            }
+            if( typeof self.scheme === 'string' ){
+                scheme = self.scheme;
+            }
 
-        re = tagName.match(regHeader);
-        if( re ){
-            headerLevel = parseInt( re[1] );
-        }
+            re = name.match(regMetadata);
+            if( re ){
+                meta = re[0].toLowerCase();
+                type = re[2].toLowerCase();
+                if( type === 'title' ){
+                    titles.push( content );
+                }
 
-        structure.push({
-            level: headerLevel,
-            id: id,
-            href: href,
-            text: text
+                if( type === 'identifier' ){
+                    identifier = content;
+                }
+
+                metadata.push({
+                    meta: meta,
+                    type: type,
+                    content : content,
+                    scheme : scheme
+                });
+            }
         });
-    });
 
-    if( titles.length > 1){
-        title = titles[0];
-    }
+        $("a").each(function(){
+            var self = this;
+            var parent = this.parent;
+            var tagName = parent.name;
+            var re, id, text, href;
 
-/*
-    console.log( title );
-    console.log( identifier );
-    console.log( metadata );
-    console.log( structure );
-*/
+            href = self.attribs.href;
+            text = $(self).text();
+            //console.log( parent.name, parent.attribs );
+            //console.log( self.attribs, $(self).text() );
 
-    return ({
-        title: title,
-        identifier:identifier,
-        metadata: metadata,
-        structure: structure
-    });
-
-}
-
-function findPage( daisy, pageId ){
-    let i,l, page, pages;
-    if( daisy || daisy.loaded ){
-        pages = daisy.ncc.structure;
-        l = pages.length;
-        for(i=0;i<l;i++){
-            page = pages[i];
-            if(page.id === pageId ){
-                return page;
-            }
-        }
-    }
-    return null;
-}
-
-let toc = [];
-function _readSMIL( file ) {
-    return new Promise(function(resolve, reject) {
-        const filePath = file.file;
-        const smilId = file.smilId;
-        fs.readFile(filePath, 'utf8', function(err, smil) {
-            if (err) { reject(err); }
-            else{
-                toc = toc.concat( Smil.makeHTMLToc(smil, smilId) );
-                resolve(toc);
-            }
-        });
-    });
-}
-
-function makeToc(daisy ,callback){
-    toc = [];
-    let i,l, page, pages;
-    let result = [];
-    if( daisy || daisy.loaded ){
-        pages = daisy.ncc.structure;
-        l = pages.length;
-        for(i=0;i<l;i++){
-            page = pages[i];
-            const href = page.href;
-            let filename = href.match("(.+?)([\?#;].*)?$");
-            if( filename ){
-                let filePath = path.join( daisy.daisyDataDir, filename[1] );
-                if( result.indexOf( filePath ) < 0 ){
-                    result.push({
-                        smilId: page.id,
-                        file: filePath
-                    });
+            if( typeof parent.attribs.id === 'string' ){
+                id = parent.attribs.id;
+                if( typeof self.attribs.id === 'string' ){
+                    id= self.attribs.id;
                 }
             }
+
+            re = tagName.match(regHeader);
+            if( re ){
+                headerLevel = parseInt( re[1] );
+            }
+
+            structure.push({
+                level: headerLevel,
+                id: id,
+                href: href,
+                text: text
+            });
+        });
+
+        if( titles.length > 1){
+            title = titles[0];
         }
 
-        result.reduce(function (current, args) {
-            return current.then(function () {
-                return _readSMIL(args);
-            });
-        }, Promise.resolve()).then(function( htmllist){
-            callback( htmllist );
+/*
+        console.log( title );
+        console.log( identifier );
+        console.log( metadata );
+        console.log( structure );
+*/
+        return ({
+            title: title,
+            identifier:identifier,
+            metadata: metadata,
+            structure: structure
         });
 
     }
+
+    return new Promise(function(resolve, reject){
+        const nccPath = daisy.nccFilePath;
+        fs.readFile(nccPath,function(err, data){
+            if( err ){ reject(err); }
+            const encode = jschardet.detect(data);
+            const buf = new Buffer(data, 'binary');
+            const ncc = iconv.decode(buf, encode.encoding);
+            const result = parse( ncc );
+            daisy.title = result.title;
+            daisy.metadata = result.metadata;
+            daisy.toc = result.structure;
+            resolve( daisy );
+        });
+    });
 }
 
+function _readItems( daisy ){
+    const dir = daisy.daisyDataDir + '/';
+
+    function getItems( cb ){
+        const pattern = path.join( dir , '*');
+        let items = {
+            html: [],
+            smil: [],
+            audio: [],
+            image: [],
+            css:[],
+            other: []
+        };
+
+        glob( pattern, function (er, files) {
+            let i,l , file;
+            let mimetype;
+            l = files.length;
+            for(i=0;i<l;i++){
+                file = files[i];
+                file = file.replace(dir ,'');
+                mimetype = mime.lookup(file);
+
+                if(mimetype.indexOf('html') > -1 ){
+                    items.html.push( file );
+                }
+                else if(mimetype.indexOf('audio') > -1 ){
+                    items.audio.push( file );
+                }
+                else if(mimetype.indexOf('smil') > -1 ){
+                    items.smil.push( file );
+                }
+                else if(mimetype.indexOf('image') > -1 ){
+                    items.image.push( file );
+                }
+                else if(mimetype.indexOf('css') > -1 ){
+                    items.css.push( file );
+                }
+                else {
+                    items.other.push( file );
+                }
+            }
+            cb(items);
+        });
+    }
+
+    return new Promise(function(resolve, reject){
+        console.log('data dir :', dir );
+        getItems(function( items ){
+            daisy.items = items;
+            resolve( daisy );
+        });
+    });
+}
+
+
+function _makeSMILData( daisy ){
+    const smils = daisy.items.smil;
+    let result = [];
+
+    function _readSMIL( file ) {
+        return new Promise(function(resolve, reject) {
+            let filePath = path.join( daisy.daisyDataDir, file );
+            fs.readFile(filePath, 'utf8', function(err, smil) {
+                let i,l , list;
+                if (err) { reject(err); }
+                else{
+
+                    let listByHTML = Smil.makeParList(smil);
+
+                    console.log( listByHTML );
+                    result = result.concat( listByHTML );
+
+                    resolve( result );
+                }
+            });
+        });
+    }
+
+    return new Promise(function(resolve, reject){
+        let i,l = smils.length;
+
+        smils.reduce(function (current, args) {
+            return current.then(function(){
+                return _readSMIL(args);
+            });
+        }, Promise.resolve()).then(function(){
+            daisy.smil = result;
+            resolve( daisy );
+        });
+
+    });
+}
 
 module.exports.DAISY = {};
 
-module.exports.load = function( daisyFilePath, callback ) {
-    console.log('DAISY parse:', daisyFilePath);
-
-    makeWorkingDirectory( daisyFilePath, function(daisy){
-        var nccPath = path.join( daisy.daisyDataDir, "ncc.html");
-        var options = { nocase: true };
-        daisy.daisyNCCFilePath = nccPath;
-
-        fs.readFile(nccPath,function(err, data){
-            var ncc = {};
-            if( err ){
-                console.log( err );
-                daisy.status = 'error';
-            }
-            else{
-                // Change Encoding to UTF-8
-                var encode = jschardet.detect(data);
-                var buf = new Buffer(data, 'binary');
-                data = iconv.decode(buf, encode.encoding);
-                ncc = parseNCC( data );
-            }
-            daisy.status = 'loaded';
-            daisy.loaded = true;
-            daisy.ncc = ncc;
-
-            toc = [];
-            makeToc(daisy,function( htmlIndex ){
-                daisy.html = htmlIndex;
-                module.exports.DAISY = daisy;
-                callback( daisy );
-            });
-
+module.exports.load = function( daisyFilePath ){
+    return new Promise(function(resolve, reject){
+        console.log('DAISY parse:', daisyFilePath);
+        _makeWorkingDirectory(daisyFilePath).then(function( daisy ){
+            return _unzipDAISY(daisyFilePath, daisy);
+        }).then(function(daisy){
+            daisy.nccFilePath = path.join( daisy.daisyDataDir, "ncc.html");
+            return _parseNCC( daisy );
+        }).then(function( daisy ){
+            return _readItems( daisy );
+        }).then(function( daisy ){
+            return _makeSMILData( daisy );
+        }).then(function( daisy ){
+            daisy.isReady = true;
+            console.log( daisy );
+            resolve( daisy );
+        }).catch(function( err ){
+            console.log( err );
+            reject( err );
         });
+
     });
-};
-
-module.exports.checkPage = function( pageId ) {
-    const daisy = this.DAISY;
-    const page = findPage( daisy, pageId );
-    if( page ){
-        const href = page.href;
-        let filename = href.match("(.+?)([\?#;].*)?$");
-        if( filename ){
-            let filePath = path.join( daisy.daisyDataDir, filename[1] );
-
-            if (fs.existsSync(filePath)) {
-                return filePath;
-            }
-        }
-    }
-    return null;
 };
 
 module.exports.getStore = function( id ){
@@ -379,7 +386,7 @@ module.exports.getStore = function( id ){
         const storageId = id +'_daisy';
         storage.get( storageId, function (error, daisy) {
             if (error) { reject(error); }
-            if (Object.keys(projects).length === 0){
+            if (Object.keys(daisy).length === 0){
                 resolve([]);
             }
             resolve(daisy);

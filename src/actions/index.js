@@ -15,6 +15,56 @@ function _loadDAISY( file ){
     });
 }
 
+function _addProject( daisy ){
+    return new Promise(function(resolve, reject){
+        project = Projects.new(daisy);
+
+        Projects.addProject( project,function(){
+            // Weit save storage??
+            setTimeout(function(){
+                resolve(project);
+            },1000);
+        });
+    });
+}
+
+
+module.exports.selectMenu = function( store, menu ){
+    return new Promise(function(resolve, reject){
+        let ss = store.getState();
+        let id = ss.operation.projectId;
+
+        console.log( menu );
+
+        if( menu === 'daisy_status' && id ){
+            store.dispatch({
+                type: types.VIEW_DAISY_STATUS,
+                value: id
+            });
+        }
+
+        if(menu === 'daisy_metadata' && id ){
+            store.dispatch({
+                type: types.VIEW_DAISY_METADATA
+            });
+        }
+
+        if(menu === 'daisy_pages' && id ){
+            store.dispatch({
+                type: types.VIEW_DAISY_PAGES
+            });
+        }
+
+        if(menu === 'daisy_items' && id ){
+            store.dispatch({
+                type: types.VIEW_DAISY_ITEMS
+            });
+        }
+
+        resolve( menu );
+    });
+};
+
 
 module.exports.viewLoading = function( store ){
     store.dispatch({
@@ -46,31 +96,45 @@ module.exports.loadProjects = function( store ){
 
 module.exports.loadDAISY = function( store, file ){
     return new Promise(function(resolve, reject){
-        DAISY.load(file,function( daisy ){
+        DAISY.load(file).then(function( daisy ){
             store.dispatch({
                 type: types.DAISY_LOAD,
                 value: daisy
             });
-
             resolve( daisy );
+        }).catch(function( err ){
+            reject( err );
         });
     });
 };
+
+module.exports.getDAISY = function( store, id ){
+    return new Promise(function(resolve, reject){
+        DAISY.getStore(id).then(function( daisy ){
+            store.dispatch({
+                type: types.DAISY_LOAD,
+                value: daisy
+            });
+            resolve( daisy );
+        }).catch(function( err ){
+            reject( err );
+        });
+    });
+};
+
 
 module.exports.addProject = function( store, daisy ){
     return new Promise(function(resolve, reject){
-        project = Projects.new(daisy);
-
-        Projects.addProject( project,function(){
-            // Weit save storage??
-            setTimeout(function(){
-                resolve(project);
-            },1000);
+        let project;
+        _addProject(daisy).then(function( pj ){
+            project = pj;
+            return DAISY.setStore(daisy);
+        }).then(function(){
+            console.log( project );
+            resolve( project );
         });
     });
 };
-
-
 
 module.exports.viewDaisyStatus = function( id ){
     return {

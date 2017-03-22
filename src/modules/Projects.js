@@ -7,7 +7,7 @@ function newProject( daisy ){
     const date = new Date();
     return {
         id: daisy.id,
-        name: daisy.ncc.title,
+        name: daisy.title,
         status: 'loaded',
         include: date.toISOString()
     };

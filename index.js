@@ -40,7 +40,7 @@ void function() {
     daisyConv.log = logger;
 
     const render = () => {
-        console.log( 'render:state::' , store.getState() );
+//        console.log( 'render:state::' , store.getState() );
         mainWindow.webContents.send("render", store.getState());
     };
 
@@ -94,8 +94,24 @@ void function() {
     });
 
     ipcMain.on("dispatch-store", (sender, e) => {
-        store.dispatch(e);
-        render();
+
+//console.log( e );
+
+        if( e.type === 'VIEW_DAISY_STATUS' ){
+            action.getDAISY( store, e.value ).then(function(){
+                store.dispatch(e);
+                render();
+            });
+        }
+        else if( e.type === 'MENU_SELECT' ){
+            action.selectMenu( store, e.value ).then(function(){
+                render();
+            });
+        }
+        else{
+            store.dispatch(e);
+            render();
+        }
     });
 
     // Open DAISY File
@@ -104,16 +120,21 @@ void function() {
         const file = e.files[0];
         action.viewLoading( store );
         render();
-        
+
         action.loadDAISY( store, file ).then(function( daisy ){
+            console.log( ' --1-- ');
             return action.addProject(store , daisy);
-        }).then(function(){
+        }).then(function(  ){
+            console.log( ' --2-- ');
             return action.loadProjects(store);
-        })
-        .then(function(){
+        }).then(function(){
+            console.log( ' --3-- ');
             return action.viewProjects(store);
         }).then(function(){
+            console.log( ' --4-- ');
             render();
+        }).catch(function( err ){
+            console.log( err );
         });
 
     });

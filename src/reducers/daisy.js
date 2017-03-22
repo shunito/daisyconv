@@ -8,7 +8,7 @@ const initialState = {
     toc : [],
     items : [],
     smil: [],
-    metadeta: []
+    metadata: []
 };
 
 function daisy(state = initialState, action) {
