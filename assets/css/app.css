@@ -1,18 +1,30 @@
 .pane {
     padding: 1em;
 }
-
-#app h2 {
-    margin: 0;
+#app h1,
+#app h2,
+#app h3 {
+    margin: 0 0 0.5em 0;
 }
 
 #app .section{
-    margin-bottom:1em;
+    clear: both;
+    margin: 1em 0;
 }
 
 #app .section .btn-large{
     margin-right: 0.5em;
 }
+
+#app h2.title-main {
+    display: inline-block;
+    float:left;
+}
+
+#app .page-btn-group {
+    float: right;
+}
+
 
 .btn-positive .icon,
 .btn-primary .icon{

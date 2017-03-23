@@ -4,33 +4,46 @@ import React, { Component } from 'react';
 import ReactDOM, { render } from 'react-dom';
 
 export default class DaisyStatus extends Component {
-    render() {
-        var daisy = this.props.daisy;
-        var ncc, metadatas = [];
-        var i,l,list = [];
 
-        if( typeof daisy !== 'undefined' ){
-            ncc = daisy.ncc;
-            metadatas = daisy.metadata;
-        }
+    _viewCheckResult( check ){
+        if( check ) return 'OK';
+        return 'NG';
+    }
+
+    render() {
+        const daisy = this.props.daisy;
+        const isReady = daisy.isReady;
+        const isTitleOK = daisy.title ? true : false;
+        const isIDOK = daisy.id ? true : false;
+        const isMetaOK = daisy.metadata  && daisy.metadata.length > 0  ? true : false;
+        const isTocOK = daisy.toc  && daisy.toc.length > 0  ? true : false;
+        const isSMILOK = daisy.items.smil.length > 0  ? true : false;
+        const isHTMLOK = daisy.items.html.length > 0  ? true : false;
 
         return(
             <div>
             <h2>DAISY Data Status</h2>
+            {isReady ? <div>Ready!</div> : null }
             <table className={"table-striped table"}>
             <thead>
                 <tr><th>Name</th><th>Value</th><th>Status</th></tr>
             </thead>
             <tbody>
-                <tr><td>Title</td><td>{ daisy.title }</td><td>OK</td></tr>
-                <tr><td>ID</td><td>{ daisy.id }</td><td>OK</td></tr>
-                <tr><td>Metadata</td><td>{ daisy.metadata.length } Data</td><td>OK</td></tr>
-                <tr><td>Table of Contents</td><td>{ daisy.toc.length } section</td><td>OK</td></tr>
-                <tr><td>SMIL Files</td><td>{ daisy.items.smil.length } file</td><td>OK</td></tr>
-                <tr><td>HTML Files</td><td>{ daisy.items.html.length } file</td><td>OK</td></tr>
-                <tr><td>Image Files</td><td>{ daisy.items.image.length } file</td><td>OK</td></tr>
-                <tr><td>Audio Files</td><td>{ daisy.items.audio.length } file</td><td>OK</td></tr>
-                <tr><td>Data Dir</td><td>{ daisy.workingDir } file</td><td>OK</td></tr>
+                <tr><td>Title</td><td>{ daisy.title }</td>
+                    <td>{this._viewCheckResult(isTitleOK)}</td></tr>
+                <tr><td>ID</td><td>{ daisy.id }</td>
+                    <td>{this._viewCheckResult(isIDOK)}</td></tr>
+                <tr><td>Metadata</td><td>{ daisy.metadata.length } Data</td>
+                    <td>{this._viewCheckResult(isMetaOK)}</td></tr>
+                <tr><td>Table of Contents</td><td>{ daisy.toc.length } section</td>
+                    <td>{this._viewCheckResult(isTocOK)}</td></tr>
+                <tr><td>SMIL Files</td><td>{ daisy.items.smil.length } file</td>
+                    <td>{this._viewCheckResult(isSMILOK)}</td></tr>
+                <tr><td>HTML Files</td><td>{ daisy.items.html.length } file</td>
+                    <td>{this._viewCheckResult(isHTMLOK)}</td></tr>
+                <tr><td>Audio Files</td><td>{ daisy.items.audio.length } file</td><td>-</td></tr>
+                <tr><td>Image Files</td><td>{ daisy.items.image.length } file</td><td>-</td></tr>
+                <tr><td>Data Dir</td><td>{ daisy.workingDir } file</td><td>-</td></tr>
             </tbody>
             </table>
             </div>

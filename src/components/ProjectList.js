@@ -44,8 +44,8 @@ export default class ProjectList extends Component {
         );
 
         return (<div>
-            <h2>Projects</h2>
-            <div className={"section btn-group"}>
+            <h2 className={"title-main"}>Projects</h2>
+            <div className={"page-btn-group"}>
                 <button className={"btn btn-default"} onClick={this._onClickOpenButton}>
                 <span className={"icon icon-folder icon-text"}></span> Open New DAISY
                 </button>

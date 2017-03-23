@@ -359,17 +359,22 @@ module.exports.DAISY = {};
 
 module.exports.load = function( daisyFilePath ){
     return new Promise(function(resolve, reject){
-        console.log('DAISY parse:', daisyFilePath);
+
+        // make Project Directory and Unzip DAISY File
         _makeWorkingDirectory(daisyFilePath).then(function( daisy ){
             return _unzipDAISY(daisyFilePath, daisy);
         }).then(function(daisy){
+            // Unzip OK. paese NCC File
             daisy.nccFilePath = path.join( daisy.daisyDataDir, "ncc.html");
             return _parseNCC( daisy );
         }).then(function( daisy ){
+            // NCC File is Fine. read other files
             return _readItems( daisy );
         }).then(function( daisy ){
+            // Get any SMIL files and make Par List.
             return _makeSMILData( daisy );
         }).then(function( daisy ){
+            // DAISY file is OK
             daisy.isReady = true;
             console.log( daisy );
             resolve( daisy );

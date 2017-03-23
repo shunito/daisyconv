@@ -3,25 +3,23 @@
 void function() {
     'use strict';
     const electron = require('electron');
-    const app = electron.app;
-    const BrowserWindow = electron.BrowserWindow;
+    const {ipcMain, dialog} = require('electron');
+    const {shell} = require('electron');
     const path = require('path');
     const url = require('url');
     const redux = require('redux');
-    const {ipcMain, dialog} = require('electron');
     const winston = require('winston');
-    const objectAssign = require('object-assign');
+
+    const app = electron.app;
+    const BrowserWindow = electron.BrowserWindow;
 
     // App Store Manager
     const reducers = require('./src/reducers');
     const store = redux.createStore(reducers.rootReducer);
     const action = require('./src/actions');
 
-    console.log( store );
-
     // Storage Modules
     const Projects = require('./src/modules/Projects');
-
 
     // Logging
     const userDataPath = app.getPath('userData');
@@ -94,9 +92,6 @@ void function() {
     });
 
     ipcMain.on("dispatch-store", (sender, e) => {
-
-//console.log( e );
-
         if( e.type === 'VIEW_DAISY_STATUS' ){
             action.getDAISY( store, e.value ).then(function(){
                 store.dispatch(e);
@@ -139,5 +134,11 @@ void function() {
 
     });
 
+    ipcMain.on("daisy-open", (sender, e) => {
+        console.log( e );
+        const id = e.id;
+        const dir = e.dir;
+        shell.showItemInFolder(dir);
+    });
 
 }();

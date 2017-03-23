@@ -34,8 +34,6 @@ module.exports.selectMenu = function( store, menu ){
         let ss = store.getState();
         let id = ss.operation.projectId;
 
-        console.log( menu );
-
         if( menu === 'daisy_status' && id ){
             store.dispatch({
                 type: types.VIEW_DAISY_STATUS,
