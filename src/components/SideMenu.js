@@ -67,16 +67,19 @@ class SideMenuEPUB extends Component {
         return (
             <nav className={"nav-group"}>
             <h5 className={"nav-group-title"}>Build EPUB</h5>
-            <span className={ this._isActive('epubGlobal') ? "nav-group-item active" : "nav-group-item" } data-menuId="epubGlobal" onClick={ this._onMenuSelect }>
-                <span className={"icon icon-tools"}></span> Build Settings
+            <span className={ this._isActive('epub_status') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_status" onClick={ this._onMenuSelect }>
+                <span className={"icon icon-heart"}></span> Status
             </span>
-            <span className={ this._isActive('epubMetadata') ? "nav-group-item active" : "nav-group-item" } data-menuId="epubMetadata" onClick={ this._onMenuSelect }>
+            <span className={ this._isActive('epub_config') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_config" onClick={ this._onMenuSelect }>
+                <span className={"icon icon-tools"}></span> Build Config
+            </span>
+            <span className={ this._isActive('epub_metadata') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_metadata" onClick={ this._onMenuSelect }>
                 <span className={"icon icon-vcard"}></span> Metadata
             </span>
-            <span className={ this._isActive('epubCover') ? "nav-group-item active" : "nav-group-item" } data-menuId="epubCover" onClick={ this._onMenuSelect }>
+            <span className={ this._isActive('epub_cover') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_cover" onClick={ this._onMenuSelect }>
                 <span className={"icon icon-picture"}></span> Cover
             </span>
-            <span className={ this._isActive('epubPages') ? "nav-group-item active" : "nav-group-item" } data-menuId="epubPages" onClick={ this._onMenuSelect }>
+            <span className={ this._isActive('epub_pages') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_pages" onClick={ this._onMenuSelect }>
                 <span className={"icon icon-book-open"}></span> Pages
             </span>
             </nav>
@@ -90,11 +93,14 @@ class SideMenu extends Component {
 
     render() {
         const isLoaded = this.props.operation.isLoaded;
+        const isBuild = this.props.epub.build;
+        const isConvert = this.props.epub.convert;
         const mode = this.props.operation.menu;
 
         return(
             <div>
             {isLoaded ? (<SideMenuDaisy mode={mode}/>) : null }
+            {isConvert ? (<SideMenuEPUB mode={mode}/>) : null }
             </div>
         );
     }

@@ -93,7 +93,14 @@ void function() {
 
     ipcMain.on("dispatch-store", (sender, e) => {
         if( e.type === 'VIEW_DAISY_STATUS' ){
+
+            console.log('load daisy&epub: ', e.value );
+
+
+
             action.getDAISY( store, e.value ).then(function(){
+                return action.getEPUB( store, e.value );
+            }).then(function( epub ){
                 store.dispatch(e);
                 render();
             });
@@ -109,8 +116,26 @@ void function() {
         }
     });
 
+    ipcMain.on("convert-epub", (sender, e) => {
+        let id;
+        if( e.type === 'EPUB_BUILD_INIT'){
+            id = e.value;
+        }
+        else{
+            return;
+        }
+        action.viewLoading( store );
+        render();
+
+        action.convDAISYtoEPUB( store , id ).then(function(){
+            console.log('-buid-');
+            return action.selectMenu( store, 'daisy_status');
+        }).then(function(){
+            render();
+        });
+    });
+
     // Open DAISY File
-    // DAISY File Open
     ipcMain.on("file-open", (sender, e) => {
         const file = e.files[0];
         action.viewLoading( store );
@@ -130,11 +155,14 @@ void function() {
             render();
         }).catch(function( err ){
             console.log( err );
+            action.viewProjects(store).then(function(){
+                render();
+            });
         });
 
     });
 
-    ipcMain.on("daisy-open", (sender, e) => {
+    ipcMain.on("item-open", (sender, e) => {
         console.log( e );
         const id = e.id;
         const dir = e.dir;

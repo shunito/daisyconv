@@ -30,10 +30,10 @@ function operations(state = initialState, action) {
               });
 
         case VIEW_LOADING:
-            return {
+            return assignState({}, state, {
                 text: 'Now Loading',
                 menu: 'loading',
-            };
+              });
 
         case VIEW_DAISY_STATUS :
             return {

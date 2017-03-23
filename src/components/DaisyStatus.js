@@ -3,6 +3,29 @@
 import React, { Component } from 'react';
 import ReactDOM, { render } from 'react-dom';
 
+
+export class EPUBBuildButton extends Component {
+
+    _onClicBuildButton(e){
+        const id = e.currentTarget.getAttribute('data-daisyId');
+        ipcRenderer.send("convert-epub", {
+            type: "EPUB_BUILD_INIT",
+            value: id
+        });
+    }
+
+    render(){
+        const daisy = this.props.daisy;
+        return(
+            <div className={"page-btn-group"}>
+                <button className={"btn btn-default"} onClick={this._onClicBuildButton} data-daisyId={daisy.id}>
+                <span className={"icon icon-folder icon-text"}></span> Convert to EPUB Data
+                </button>
+            </div>
+        )
+    }
+}
+
 export default class DaisyStatus extends Component {
 
     _viewCheckResult( check ){
@@ -22,8 +45,8 @@ export default class DaisyStatus extends Component {
 
         return(
             <div>
-            <h2>DAISY Data Status</h2>
-            {isReady ? <div>Ready!</div> : null }
+            <h2 className={"title-main"}>DAISY Data Status</h2>
+            {isReady ? <EPUBBuildButton daisy={daisy} /> : null }
             <table className={"table-striped table"}>
             <thead>
                 <tr><th>Name</th><th>Value</th><th>Status</th></tr>

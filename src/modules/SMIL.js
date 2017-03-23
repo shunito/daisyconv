@@ -60,7 +60,7 @@ function _transform( smil ){
         return XMLF.format($smil3.html(), 2);
 }
 
-module.exports.makeParList = function( smil ){
+module.exports.makeParList = function( smil ,file ){
     let result = [];
     let $ = cheerio.load(smil, {
         decodeEntities: false,
@@ -98,6 +98,7 @@ module.exports.makeParList = function( smil ){
             if( href ){
                 let fname = href[1];
                 result.push({
+                        smil: file,
                         html: fname,
                         par: parValue,
                         text : textValue,

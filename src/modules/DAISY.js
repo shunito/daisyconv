@@ -329,7 +329,7 @@ function _makeSMILData( daisy ){
                 if (err) { reject(err); }
                 else{
 
-                    let listByHTML = Smil.makeParList(smil);
+                    let listByHTML = Smil.makeParList(smil, file);
 
                     console.log( listByHTML );
                     result = result.concat( listByHTML );

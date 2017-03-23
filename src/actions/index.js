@@ -4,6 +4,7 @@ const types = require('../constants/ActionTypes');
 const Projects = require('../modules/Projects');
 const DAISY = require('../modules/DAISY');
 const SMIL = require('../modules/SMIL');
+const EPUB = require('../modules/EPUB');
 
 //module.exports.viewProjects = () => ({ type: types.VIEW_PROJECT_LIST });
 
@@ -63,6 +64,49 @@ module.exports.selectMenu = function( store, menu ){
     });
 };
 
+module.exports.convDAISYtoEPUB = function( store , id ){
+    console.log( 'build EPUB Data start --', id );
+    const data = store.getState();
+
+    return new Promise(function(resolve, reject){
+        EPUB.copyEPUBTemplate( id ).then(function( dir ){
+            console.log( dir );
+            return EPUB.copyBaseData( data.daisy, data.epub );
+        }).then(function( epub ){
+            return EPUB.convertDAISYItems( data.daisy, epub );
+        }).then(function( epub ){
+            return EPUB.convertToc( data.daisy, epub );
+        }).then(function( epub ){
+            epub.convert = true;
+            return EPUB.setStore(epub);
+        }).then(function( epub ){
+            store.dispatch({
+                type: types.EPUB_BUILD_CONVERT,
+                value: epub
+            });
+//            console.log( epub );
+            resolve( epub );
+        });
+    });
+};
+
+function _initEPUBStorage( store ){
+    store.dispatch({
+        type: types.EPUB_RESET
+    });
+    return new Promise(function(resolve, reject){
+        const state = store.getState();
+        const daisy = state.daisy;
+        let epub = state.epub;
+
+        epub.id = daisy.id;
+        EPUB.setStore( state.epub ).then(function( epub ){
+            resolve( epub );
+        });
+    });
+}
+
+
 
 module.exports.viewLoading = function( store ){
     store.dispatch({
@@ -93,8 +137,29 @@ module.exports.loadProjects = function( store ){
 };
 
 module.exports.loadDAISY = function( store, file ){
+    let data;
     return new Promise(function(resolve, reject){
         DAISY.load(file).then(function( daisy ){
+            store.dispatch({
+                type: types.DAISY_LOAD,
+                value: daisy
+            });
+            data = daisy;
+            return _initEPUBStorage(store);
+        }).then(function(){
+            resolve( data );
+        }).catch(function( err ){
+            reject( err );
+        });
+    });
+};
+
+
+
+
+module.exports.getDAISY = function( store, id ){
+    return new Promise(function(resolve, reject){
+        DAISY.getStore(id).then(function( daisy ){
             store.dispatch({
                 type: types.DAISY_LOAD,
                 value: daisy
@@ -106,14 +171,14 @@ module.exports.loadDAISY = function( store, file ){
     });
 };
 
-module.exports.getDAISY = function( store, id ){
+module.exports.getEPUB = function( store, id ){
     return new Promise(function(resolve, reject){
-        DAISY.getStore(id).then(function( daisy ){
+        EPUB.getStore(id).then(function( epub ){
             store.dispatch({
-                type: types.DAISY_LOAD,
-                value: daisy
+                type: types.EPUB_LOAD,
+                value: epub
             });
-            resolve( daisy );
+            resolve( epub );
         }).catch(function( err ){
             reject( err );
         });

@@ -34,7 +34,7 @@ export default class DaisyItems extends Component {
         const id = e.currentTarget.getAttribute('data-daisyId');
         const dir = e.currentTarget.getAttribute('data-daisyDir');
 
-        ipcRenderer.send("daisy-open", {
+        ipcRenderer.send("item-open", {
             id: id,
             dir: dir
         });
