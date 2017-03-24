@@ -25,6 +25,10 @@
     float: right;
 }
 
+#app .check {
+    display: inline-block;
+    margin-right:1em;
+}
 
 .btn-positive .icon,
 .btn-primary .icon{
