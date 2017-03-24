@@ -92,21 +92,12 @@ void function() {
     });
 
     ipcMain.on("dispatch-store", (sender, e) => {
+
         if( e.type === 'VIEW_DAISY_STATUS' ){
-
-            console.log('load daisy&epub: ', e.value );
-
-
-
             action.getDAISY( store, e.value ).then(function(){
                 return action.getEPUB( store, e.value );
             }).then(function( epub ){
                 store.dispatch(e);
-                render();
-            });
-        }
-        else if( e.type === 'MENU_SELECT' ){
-            action.selectMenu( store, e.value ).then(function(){
                 render();
             });
         }
@@ -117,13 +108,10 @@ void function() {
     });
 
     ipcMain.on("convert-epub", (sender, e) => {
-        let id;
-        if( e.type === 'EPUB_BUILD_INIT'){
-            id = e.value;
-        }
-        else{
+        if( e.type !== 'EPUB_BUILD_INIT'){
             return;
         }
+        const id = e.value;
         action.viewLoading( store );
         render();
 
@@ -163,7 +151,7 @@ void function() {
     });
 
     ipcMain.on("item-open", (sender, e) => {
-        console.log( e );
+        //console.log( e );
         const id = e.id;
         const dir = e.dir;
         shell.showItemInFolder(dir);

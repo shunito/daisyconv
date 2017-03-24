@@ -35,6 +35,5 @@ const menuDOM = document.getElementById("toolbar");
 ReactDOM.render(React.createElement(MainMenu), menuDOM);
 
 ipcRenderer.on("render", (sender, state) => {
-    console.log('on render ',sender ,state);
     ReactDOM.render(React.createElement(MainMenu, state), menuDOM);
 });

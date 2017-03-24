@@ -14,30 +14,34 @@ class SideMenuDaisy extends Component {
 
     _onMenuSelect( e ) {
         const menu = e.currentTarget.getAttribute('data-menuId');
+        const id = e.currentTarget.getAttribute('data-projectId');
+
         ipcRenderer.send("dispatch-store", {
-            type: "MENU_SELECT",
-            value: menu
+            type: menu,
+            value: id
         });
     }
 
     render() {
+        const id = this.props.id;
+
         return (
             <nav className={"nav-group"}>
               <h5 className={"nav-group-title"}>Daisy</h5>
 
-              <span className={ this._isActive('daisy_status') ? "nav-group-item active" : "nav-group-item" } data-menuId="daisy_status" onClick={this._onMenuSelect}>
+              <span className={ this._isActive('VIEW_DAISY_STATUS') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_DAISY_STATUS" data-projectId={id} onClick={this._onMenuSelect}>
                   <span className={"icon icon-heart"}></span> Status
               </span>
 
-              <span className={ this._isActive('daisy_metadata') ? "nav-group-item active" : "nav-group-item" } data-menuId="daisy_metadata" onClick={this._onMenuSelect}>
+              <span className={ this._isActive('VIEW_DAISY_METADATA') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_DAISY_METADATA" data-projectId={id} onClick={this._onMenuSelect}>
                   <span className={"icon icon-vcard"}></span> Metadata
               </span>
 
-              <span className={ this._isActive('daisy_pages') ? "nav-group-item active" : "nav-group-item" } data-menuId="daisy_pages" onClick={this._onMenuSelect}>
+              <span className={ this._isActive('VIEW_DAISY_PAGES') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_DAISY_PAGES" data-projectId={id} onClick={this._onMenuSelect}>
                   <span className={"icon icon-book-open"}></span> Pages
               </span>
 
-              <span className={ this._isActive('daisy_items') ? "nav-group-item active" : "nav-group-item" } data-menuId="daisy_items" onClick={this._onMenuSelect}>
+              <span className={ this._isActive('VIEW_DAISY_ITEMS') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_DAISY_ITEMS" data-projectId={id} onClick={this._onMenuSelect}>
                   <span className={"icon icon-docs"}></span> Items
               </span>
 
@@ -57,29 +61,33 @@ class SideMenuEPUB extends Component {
 
     _onMenuSelect( e ) {
         const menu = e.currentTarget.getAttribute('data-menuId');
+        const id = e.currentTarget.getAttribute('data-projectId');
+
         ipcRenderer.send("dispatch-store", {
-            type: "MENU_SELECT",
-            value: menu
+            type: menu,
+            value: id
         });
     }
 
     render() {
+        const id = this.props.id;
+
         return (
             <nav className={"nav-group"}>
             <h5 className={"nav-group-title"}>Build EPUB</h5>
-            <span className={ this._isActive('epub_status') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_status" onClick={ this._onMenuSelect }>
+            <span className={ this._isActive('VIEW_EPUB_STATUS') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_EPUB_STATUS" data-projectId={id} onClick={ this._onMenuSelect }>
                 <span className={"icon icon-heart"}></span> Status
             </span>
-            <span className={ this._isActive('epub_config') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_config" onClick={ this._onMenuSelect }>
+            <span className={ this._isActive('VIEW_EPUB_CONFIG') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_EPUB_CONFIG" data-projectId={id} onClick={ this._onMenuSelect }>
                 <span className={"icon icon-tools"}></span> Build Config
             </span>
-            <span className={ this._isActive('epub_metadata') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_metadata" onClick={ this._onMenuSelect }>
+            <span className={ this._isActive('VIEW_EPUB_METADATA') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_EPUB_METADATA" data-projectId={id} onClick={ this._onMenuSelect }>
                 <span className={"icon icon-vcard"}></span> Metadata
             </span>
-            <span className={ this._isActive('epub_cover') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_cover" onClick={ this._onMenuSelect }>
+            <span className={ this._isActive('VIEW_EPUB_COVER') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_EPUB_COVER" data-projectId={id} onClick={ this._onMenuSelect }>
                 <span className={"icon icon-picture"}></span> Cover
             </span>
-            <span className={ this._isActive('epub_pages') ? "nav-group-item active" : "nav-group-item" } data-menuId="epub_pages" onClick={ this._onMenuSelect }>
+            <span className={ this._isActive('VIEW_EPUB_PAGES') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_EPUB_PAGES" data-projectId={id} onClick={ this._onMenuSelect }>
                 <span className={"icon icon-book-open"}></span> Pages
             </span>
             </nav>
@@ -96,11 +104,12 @@ class SideMenu extends Component {
         const isBuild = this.props.epub.build;
         const isConvert = this.props.epub.convert;
         const mode = this.props.operation.menu;
+        const id = this.props.operation.projectId;
 
         return(
             <div>
-            {isLoaded ? (<SideMenuDaisy mode={mode}/>) : null }
-            {isConvert ? (<SideMenuEPUB mode={mode}/>) : null }
+            {isLoaded ? (<SideMenuDaisy mode={mode} id={id}/>) : null }
+            {isConvert ? (<SideMenuEPUB mode={mode} id={id}/>) : null }
             </div>
         );
     }
