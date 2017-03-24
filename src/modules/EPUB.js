@@ -16,6 +16,41 @@ const userPath = app.getPath('userData');
 const projectsDir = path.join(userPath, 'projects');
 const epubTemplatePath = path.resolve('assets/epub_template/');
 
+function resolveClockValue(time) {
+    var h, min, sc , re,
+        result = parseFloat(time);
+    if( typeof time === 'number') { return time; }
+    if( typeof time !== 'string' ) { return 0; }
+
+    re = time.match(/([0-9\.]+)(h|min|s|ms)/i);
+    if(re){
+        result = parseFloat(re[1]);
+        if( re[2] ==='h' ){ result = result * 3600; }
+        else if( re[2] ==='min' ){ result = result * 60; }
+        else if( re[2] ==='ms' ){ result = result / 1000; }
+        return result;
+    }
+
+    re = time.match(/([0-9]+):([0-9]+):([0-9\.]+)/i);
+    if(re){
+        h = parseInt(re[1],10);
+        min = parseInt(re[2],10);
+        sc = parseFloat(re[3]);
+        result = h * 3600 + min * 60 + sc;
+        return result;
+    }
+    else{
+        re = time.match(/([0-9]+):([0-9\.]+)/i);
+        if(re){
+            min = parseInt(re[1],10);
+            sc = parseFloat(re[2]);
+            result = min * 60 + sc;
+            return result;
+        }
+    }
+    return result;
+}
+
 function _copyBaseData( daisy , epub ){
 
     function _getLang( metadata ){
@@ -186,10 +221,94 @@ function _convertToc( daisy, epub ){
     });
 }
 
+function _makeSMILforEPUB(daisy, epub){
+
+    function __searchSMILIndex( smil, src ){
+        let result = [];
+        let i,l;
+
+        l = smil.length;
+        for( i=0;i<l;i++){
+            if( smil[i].html === src ){
+                result.push( smil[i] );
+            }
+        }
+        return result;
+    }
+
+    function __makeDuration( smil ){
+        let i,l, minClipBegin, maxClipEnd , duration;
+        let clipEnd, clipBegin ,tmp;
+
+        l = smil.length;
+        minClipBegin = Number.MAX_VALUE;
+        maxClipEnd = 0;
+
+        for(i=0;i<l;i++){
+            clipBegin = smil[i].audio.clipBegin;
+            clipEnd = smil[i].audio.clipEnd;
+
+            tmp = clipBegin.split("=");
+            if( tmp.length > 1 ){ clipBegin = resolveClockValue(tmp[1]); }
+            else{ clipBegin = resolveClockValue(tmp[1]); }
+
+            tmp = clipEnd.split("=");
+            if( tmp.length > 1 ){ clipEnd = resolveClockValue(tmp[1]); }
+            else{ clipEnd = resolveClockValue(tmp[1]); }
+
+            if( clipBegin <  minClipBegin ){ minClipBegin = clipBegin; }
+            if( clipEnd >  maxClipEnd ){ maxClipEnd = clipEnd; }
+        }
+
+        //console.log( 'minClipBegin::' ,minClipBegin );
+        //console.log( 'maxClipEnd::' ,maxClipEnd );
+
+        duration = maxClipEnd - minClipBegin;
+        //console.log( 'duration::' ,duration );
+
+        if( duration > 0 ){
+            return duration;
+        }
+        return 0;
+    }
+
+
+    function __convert( smil, html ){
+        let result = [], value = [];
+        let i,l, par , src, duration;
+
+        l = html.length;
+        for(i=0;i<l;i++){
+            src = html[i];
+            value = __searchSMILIndex( smil, src );
+
+            duration = __makeDuration( value );
+
+            result.push({
+                href : src,
+                duration: duration,
+                val : value
+            });
+        }
+
+        return result;
+    }
+
+    return new Promise(function(resolve, reject){
+        let result = Object.assign({}, epub);
+        const smil = daisy.smil;
+        const html = daisy.items.html;
+
+        result.smil =  __convert( smil, html );
+        resolve( result );
+    });
+}
+
 
 module.exports.copyBaseData = _copyBaseData;
 module.exports.convertDAISYItems = _convertDAISYItems;
 module.exports.convertToc = _convertToc;
+module.exports.makeSMILforEPUB = _makeSMILforEPUB;
 
 module.exports.copyEPUBTemplate = function( id ){
     return new Promise(function(resolve, reject){

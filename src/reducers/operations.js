@@ -96,7 +96,6 @@ function operations(state = initialState, action) {
                 menu: VIEW_EPUB_PAGES
             });
 
-
         default:
           return state;
     }

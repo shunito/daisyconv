@@ -77,6 +77,8 @@ module.exports.convDAISYtoEPUB = function( store , id ){
         }).then(function( epub ){
             return EPUB.convertToc( data.daisy, epub );
         }).then(function( epub ){
+            return EPUB.makeSMILforEPUB( data.daisy, epub );
+        }).then(function( epub ){
             epub.convert = true;
             return EPUB.setStore(epub);
         }).then(function( epub ){
