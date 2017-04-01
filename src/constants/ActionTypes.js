@@ -15,13 +15,11 @@ module.exports.VIEW_EPUB_COVER = 'VIEW_EPUB_COVER';
 module.exports.VIEW_EPUB_PAGES = 'VIEW_EPUB_PAGES';
 
 
-
 // DAISY File Open
 module.exports.OPEN_DAISY_FILE = 'OPEN_DAISY_FILE';
 module.exports.DAISY_LOAD = 'DAISY_LOAD';
 
 // EPUB
-
 module.exports.EPUB_LOAD = 'EPUB_LOAD';
 module.exports.EPUB_RESET = 'EPUB_RESET';
 module.exports.EPUB_BUILD_INIT = 'EPUB_BUILD_INIT';
@@ -29,6 +27,7 @@ module.exports.EPUB_BUILD_CONVERT = 'EPUB_BUILD_CONVERT';
 module.exports.EPUB_BUILD_CONVERT_FINISH = 'EPUB_BUILD_CONVERT_FINISH';
 module.exports.EPUB_BUILD_REBUILD = 'EPUB_BUILD_REBUILD';
 module.exports.EPUB_BUILD_FINISH = 'EPUB_BUILD_FINISH';
+module.exports.EPUB_CONFIG_UPDATE = 'EPUB_CONFIG_UPDATE';
 
 
 

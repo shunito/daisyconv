@@ -3,6 +3,7 @@
 const {
     EPUB_LOAD,
     EPUB_RESET,
+    EPUB_CONFIG_UPDATE,
     EPUB_BUILD_INIT,
     EPUB_BUILD_CONVERT,
     EPUB_BUILD_CONVERT_FINISH,
@@ -52,6 +53,8 @@ function epub(state = initialState, action) {
         case EPUB_BUILD_CONVERT:
             return Object.assign({}, state, action.value );
         case EPUB_LOAD:
+            return Object.assign({}, state, action.value );
+        case EPUB_CONFIG_UPDATE:
             return Object.assign({}, state, action.value );
         case EPUB_RESET:
             return initialState;

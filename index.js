@@ -101,6 +101,11 @@ void function() {
                 render();
             });
         }
+        else if( e.type === 'EPUB_CONFIG_UPDATE' ){
+            action.updateEPUBConfig(store, e.id, e.value ).then(function( epub ){
+                render();
+            });
+        }
         else{
             store.dispatch(e);
             render();

@@ -187,6 +187,24 @@ module.exports.getEPUB = function( store, id ){
     });
 };
 
+module.exports.updateEPUBConfig = function( store, id, config ){
+    return new Promise(function(resolve, reject){
+        EPUB.getStore(id).then(function( epub ){
+            epub.config = config;
+            return EPUB.setStore( epub );
+        }).then(function( epub ){
+            store.dispatch({
+                type: types.EPUB_CONFIG_UPDATE,
+                value: epub
+            });
+            resolve( epub );
+        })
+        .catch(function( err ){
+            reject( err );
+        });
+    });
+};
+
 
 module.exports.addProject = function( store, daisy ){
     return new Promise(function(resolve, reject){
