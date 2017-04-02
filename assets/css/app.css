@@ -54,6 +54,11 @@
     width: 100%;
 }
 
+#sidemenu .build{
+    margin:1em;
+    text-align: center;
+}
+
 .btn-positive .icon,
 .btn-primary .icon{
     color: #FFF;

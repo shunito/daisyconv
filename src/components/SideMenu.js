@@ -73,6 +73,7 @@ class SideMenuEPUB extends Component {
         const id = this.props.id;
 
         return (
+
             <nav className={"nav-group"}>
             <h5 className={"nav-group-title"}>Build EPUB</h5>
             <span className={ this._isActive('VIEW_EPUB_STATUS') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_EPUB_STATUS" data-projectId={id} onClick={ this._onMenuSelect }>
@@ -90,6 +91,10 @@ class SideMenuEPUB extends Component {
             <span className={ this._isActive('VIEW_EPUB_PAGES') ? "nav-group-item active" : "nav-group-item" } data-menuId="VIEW_EPUB_PAGES" data-projectId={id} onClick={ this._onMenuSelect }>
                 <span className={"icon icon-book-open"}></span> Pages
             </span>
+            <div className={"build"}>
+                <button type="button" className={"btn btn-large btn-positive"}>
+                <span className={"icon icon-book"}></span> Build EPUB</button>
+            </div>
             </nav>
         );
     }
