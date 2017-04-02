@@ -37,7 +37,7 @@ function operations(state = initialState, action) {
         case VIEW_LOADING:
             return assignState({}, state, {
                 text: 'Now Loading',
-                menu: VIEW_PROJECT_LIST,
+                menu: VIEW_LOADING,
               });
 
         case VIEW_DAISY_STATUS :

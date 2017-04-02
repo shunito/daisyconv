@@ -65,6 +65,19 @@ function _copyBaseData( daisy , epub ){
         return '';
     }
 
+    function _getCreator( metadata ){
+        let i,l, meta;
+        l = metadata.length;
+        for(i=0;i<l;i++){
+            meta = metadata[i];
+            if( meta.type === 'creator'){
+                return meta.content;
+            }
+        }
+        return '';
+    }
+
+
     function _convMetadata( daisyMeta ){
         let meta = daisyMeta.meta;
         let type = daisyMeta.type;
@@ -103,6 +116,7 @@ function _copyBaseData( daisy , epub ){
         // Basic Settings
         result.id = daisy.id;
         result.config.base_lang = _getLang( daisy.metadata );
+        result.config.a11y_certifiedBy = _getCreator( daisy.metadata );
 
         // Convert Metadata
         l = daisy.metadata.length;

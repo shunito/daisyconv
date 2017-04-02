@@ -51,7 +51,7 @@ export default class ProjectList extends Component {
                 </button>
             </div>
             <div className={"section"}>
-                <table className={"table-striped table"}>
+                <table className={"table-striped table selectable"}>
                 <thead>
                     <tr><th>Title</th><th>ID</th><th>Include Date</th></tr>
                 </thead>
